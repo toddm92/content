@@ -569,3 +569,7 @@ def getIndexHash():
 
 def getLicenseID():
     return ''
+
+
+def getModules():
+    return ''
