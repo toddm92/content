@@ -1,0 +1,21 @@
+commonfields:
+  id: IncidentsPerFeedTable
+  version: -1
+name: IncidentsPerFeedTable
+script: '-'
+type: python
+tags:
+- widget
+comment: Return data structure for a table widget with the columns- 'Feed name', 'Incidents',
+  'False positive incidents' and 'True Positive Incidents'
+enabled: true
+scripttarget: 0
+subtype: python3
+dependson:
+  must:
+  - getIncidents
+runonce: false
+dockerimage: demisto/python3:3.8.1.5734
+runas: DBotWeakRole
+tests:
+  - No test - Cannot generate incidents from feeds in a test
