@@ -1,0 +1,155 @@
+category: Authentication
+commonfields:
+  id: CyberArkVault
+  version: -1
+configuration:
+- defaultvalue: https://example.net
+  display: Server URL (e.g. https://example.net)
+  name: url
+  required: true
+  type: 0
+- display: Username
+  name: credentials
+  required: true
+  type: 9
+- display: Trust any certificate (not secure)
+  name: insecure
+  required: false
+  type: 8
+- display: Use system proxy settings
+  name: proxy
+  required: false
+  type: 8
+- defaultvalue: Cyberark
+  display: Authentication Method
+  hidden: false
+  name: auth_method
+  options:
+  - Cyberark
+  - Windows
+  - LDAP
+  - RADIUS
+  required: true
+  type: 15
+description: This is the Hello World integration for getting started.
+display: CyberArkVault
+name: CyberArkVault
+script:
+  commands:
+  - arguments:
+    - default: false
+      description: The name of the user.
+      isArray: false
+      name: username
+      required: true
+      secret: false
+    - default: false
+      description: The password that the user will use to log on for the first time.
+        This password must meet the password policy requirements. Not required for
+        PKI or LDAP.
+      isArray: false
+      name: initial_password
+      required: false
+      secret: false
+    - default: false
+      description: The user's business email address.
+      isArray: false
+      name: email
+      required: true
+      secret: false
+    - default: false
+      description: The user's personal details.
+      isArray: false
+      name: first_name
+      required: true
+      secret: false
+    - default: false
+      description: The user's personal details.
+      isArray: false
+      name: last_name
+      required: true
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      defaultValue: 'true'
+      description: Whether or not the user must change their password from the second
+        log on onward.
+      isArray: false
+      name: change_password_on_the_next_logon
+      predefined:
+      - 'true'
+      - 'false'
+      required: true
+      secret: false
+    - default: false
+      description: The date when the user expires. Format %Y-%m-%dT%H:%M (2030-03-18T:20:30)
+      isArray: false
+      name: expiry_date
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      defaultValue: 'true'
+      description: Whether the user will be enabled upon creation.
+      isArray: false
+      name: enable_user
+      predefined:
+      - 'true'
+      - 'false'
+      required: false
+      secret: false
+    - default: false
+      defaultValue: //Root
+      description: The location in the Vault where the user will be created. Must
+        start with `//`
+      isArray: false
+      name: vault_location
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      defaultValue: CyberArk
+      description: The authentication method that the user will use to log on.
+      isArray: false
+      name: authentication_method
+      predefined:
+      - CyberArk
+      - LDAP
+      - RADIUS
+      required: true
+      secret: false
+    deprecated: false
+    description: Creates a user in CyberArk
+    execution: false
+    name: cyberark-pas-create-user
+  - arguments:
+    - default: false
+      description: The user's unique ID.
+      isArray: false
+      name: user_id
+      required: true
+      secret: false
+    deprecated: false
+    description: This method command an existing Vault user.
+    execution: false
+    name: cyberark-pas-update-user
+  - arguments:
+    - default: false
+      description: The user's unique ID.
+      isArray: false
+      name: user_id
+      required: true
+      secret: false
+    deprecated: false
+    description: This method deletes a specific user in the Vault.
+    execution: true
+    name: cyberark-pas-delete-user
+  dockerimage: demisto/python3:3.7.4.2245
+  feed: false
+  isfetch: false
+  longRunning: false
+  longRunningPort: false
+  runonce: false
+  script: '-'
+  subtype: python3
+  type: python
