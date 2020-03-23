@@ -8,6 +8,8 @@ import sys
 import requests
 from pytest import raises, mark
 import pytest
+from http import HTTPStatus
+
 from CommonServerPython import xml2json, json2xml, entryTypes, formats, tableToMarkdown, underscoreToCamelCase, \
     flattenCell, date_to_timestamp, datetime, camelize, pascalToSpace, argToList, \
     remove_nulls_from_dictionary, is_error, get_error, hash_djb2, fileResult, is_ip_valid, get_demisto_version, \
@@ -377,8 +379,8 @@ def test_camelize():
 
 # Note this test will fail when run locally (in pycharm/vscode) as it assumes the machine (docker image) has UTC timezone set
 def test_date_to_timestamp():
-    assert date_to_timestamp('2018-11-06T08:56:41') == 1541494601000
-    assert date_to_timestamp(datetime.strptime('2018-11-06T08:56:41', "%Y-%m-%dT%H:%M:%S")) == 1541494601000
+    assert date_to_timestamp('2018-11-06T08:56:41') == 1541487401000
+    assert date_to_timestamp(datetime.strptime('2018-11-06T08:56:41', "%Y-%m-%dT%H:%M:%S")) == 1541487401000
 
 
 def test_pascalToSpace():
@@ -835,8 +837,6 @@ class TestBuildDBotEntry(object):
             }
         }
 
-
-class TestBaseClient:
     from CommonServerPython import BaseClient
     text = {"status": "ok"}
     client = BaseClient('http://example.com/api/v2/', ok_codes=(200, 201))
@@ -916,6 +916,28 @@ class TestBaseClient:
         requests_mock.get('http://example.com/api/v2/event', exc=requests.exceptions.ConnectionError)
         with raises(DemistoException, match="Verify that the server URL parameter"):
             self.client._http_request('get', 'event', resp_type='response')
+
+    def test_text_exception_parsing(self, requests_mock):
+        from CommonServerPython import DemistoException
+        reason = 'Bad Request'
+        text = 'additional text'
+        requests_mock.get('http://example.com/api/v2/event',
+                          status_code=HTTPStatus.BAD_REQUEST,
+                          reason=reason,
+                          text=text)
+        with raises(DemistoException, match=f'- {reason}\n{text}'):
+            self.client._http_request('get', 'event', resp_type='text')
+
+    def test_json_exception_parsing(self, requests_mock):
+        from CommonServerPython import DemistoException
+        reason = 'Bad Request'
+        json_response = {'error': 'additional text'}
+        requests_mock.get('http://example.com/api/v2/event',
+                          status_code=HTTPStatus.BAD_REQUEST,
+                          reason=reason,
+                          json=json_response)
+        with raises(DemistoException, match=f'- {reason}\n.*{json_response["error"]}'):
+            self.client._http_request('get', 'event', resp_type='text')
 
     def test_is_valid_ok_codes_empty(self):
         from requests import Response
