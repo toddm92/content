@@ -26,7 +26,6 @@ BLACKLIST_CMD = 'blacklist'
 ANALYSIS_TITLE = "AbuseIPDB Analysis"
 BLACKLIST_TITLE = "AbuseIPDB Blacklist"
 REPORT_SUCCESS = "IP address reported successfully."
-API_QUOTA_REACHED_MESSAGE = 'Too many requests (possibly bad API key). Status code: 429'
 
 HEADERS = {
     'Key': API_KEY,
@@ -105,9 +104,9 @@ def http_request(method, url_suffix, params=None, headers=HEADERS, threshold=THR
             return_error('Bad connection attempet. Status code: ' + str(analysis.status_code))
         if analysis.status_code == 429:
             if demisto.params().get('disregard_quota'):
-                return API_QUOTA_REACHED_MESSAGE
+                return 'Too many requests (possibly bad API key). Status code: ' + str(analysis.status_code)
             else:
-                return_error(API_QUOTA_REACHED_MESSAGE)
+                return_error('Too many requests (possibly bad API key). Status code: ' + str(analysis.status_code))
 
         return REPORT_SUCCESS if url_suffix == REPORT_CMD else analysis.json()
     except Exception as e:
@@ -230,10 +229,7 @@ def check_ip_command(ip, days=MAX_AGE, verbose=VERBOSE, threshold=THRESHOLD):
     for current_ip in ip_list:
         params["ipAddress"] = current_ip
         analysis = http_request("GET", url_suffix=CHECK_CMD, params=params).get("data")
-        if analysis == API_QUOTA_REACHED_MESSAGE:
-            pass
-        else:
-            entry_list.append(analysis_to_entry(analysis, verbose=verbose, threshold=threshold))
+        entry_list.append(analysis_to_entry(analysis, verbose=verbose, threshold=threshold))
     return entry_list
 
 
