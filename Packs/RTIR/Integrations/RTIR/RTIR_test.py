@@ -34,7 +34,7 @@ def test_query_formatting(mocker):
     assert not (query.endswith('+OR+') or query.endswith('+AND+'))
 
 
-RAW_HISTORY = """    
+RAW_HISTORY = """
 RT/4.4.2 200 Ok
 
 # 24/24 (id/80/total)
