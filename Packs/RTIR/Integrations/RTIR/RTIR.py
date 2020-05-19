@@ -592,8 +592,22 @@ def get_ticket_history_by_id(ticket_id, history_id):
 
     suffix_url = 'ticket/{}/history/id/{}'.format(ticket_id, history_id)
     raw_history = http_request('GET', suffix_url)
+    return parse_history_response(raw_history.content)
 
-    return raw_history
+
+def parse_history_response(raw_history):
+    splitted_history = re.split(r'\n[a-z|A-Z]+:', raw_history, maxsplit=13)
+    if len(splitted_history) != 14:
+        return
+    current_history_context = {
+        'ID': splitted_history[1].strip(),
+        'Content': splitted_history[10].strip(),
+        'Created': splitted_history[12].strip(),
+        'Creator': splitted_history[11].strip(),
+        'Description': splitted_history[9].strip(),
+        'NewValue': splitted_history[7].strip(),
+    }
+    return current_history_context
 
 
 def get_ticket_history(ticket_id):
@@ -604,20 +618,11 @@ def get_ticket_history(ticket_id):
     data = raw_history.text.split('\n')
     data = data[4:]
     for line in data:
-        split_line = line.split(': ')
-        current_raw_ticket_history = get_ticket_history_by_id(ticket_id, split_line[0]).content
-        current_raw_ticket_history = current_raw_ticket_history.split('\n')
-        current_raw_ticket_history = current_raw_ticket_history[4:]
-        id_ticket = current_raw_ticket_history[0].upper()
-        current_raw_ticket_history[0] = id_ticket
-        current_history_context = {}
-        for entity in current_raw_ticket_history:
-            if ': ' in entity:
-                header, content = entity.split(': ', 1)
-                if header in {'ID', 'Content', 'Created', 'Creator', 'Description', 'NewValue'}:
-                    current_history_context[header] = content
-        if current_history_context:
-            history_context.append(current_history_context)
+        history_id = line.split(': ')[0]
+        if not history_id:
+            continue
+        history_response = get_ticket_history_by_id(ticket_id, history_id)
+        history_context.append(history_response)
     return history_context, headers
 
 
