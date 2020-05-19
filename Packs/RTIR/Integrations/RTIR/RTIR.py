@@ -652,7 +652,7 @@ def get_ticket_history_command():
 def get_ticket():
     ticket_id = demisto.args().get('ticket-id')
     raw_ticket = get_ticket_request(ticket_id)
-    if not raw_ticket:
+    if not raw_ticket or 'Ticket {} does not exist'.format(ticket_id) in raw_ticket.text:
         return_error('Failed to get ticket, possibly does not exist.')
     ticket_context = []
     data = raw_ticket.content.split('\n')
@@ -662,32 +662,33 @@ def get_ticket():
         split_line = line.split(': ')
         if len(split_line) == 2:
             current_ticket[split_line[0]] = split_line[1]
-            ticket = {
-                'ID': ticket_string_to_id(current_ticket['id']),
-                'Subject': current_ticket.get('Subject'),
-                'State': current_ticket.get('Status'),
-                'Creator': current_ticket.get('Creator'),
-                'Created': current_ticket.get('Created'),
-                'Priority': current_ticket.get('Priority'),
-                'InitialPriority': current_ticket.get('InitialPriority'),
-                'FinalPriority': current_ticket.get('FinalPriority'),
-                'Queue': current_ticket.get('Queue'),
-                'Owner': current_ticket.get('Owner')
-            }
+    ticket = {
+        'ID': ticket_string_to_id(current_ticket['id']),
+        'Subject': current_ticket.get('Subject'),
+        'State': current_ticket.get('Status'),
+        'Creator': current_ticket.get('Creator'),
+        'Created': current_ticket.get('Created'),
+        'Priority': current_ticket.get('Priority'),
+        'InitialPriority': current_ticket.get('InitialPriority'),
+        'FinalPriority': current_ticket.get('FinalPriority'),
+        'Queue': current_ticket.get('Queue'),
+        'Owner': current_ticket.get('Owner')
+    }
 
-        for key in data:  # Adding ticket custom fields to outputs
-            if key.startswith('CF.'):
-                split_key = key.split(':')
-                if split_key[0]:
-                    custom_field_regex = re.findall(CURLY_BRACKETS_REGEX, key)[0].replace(' ',
-                                                                                          '')  # Regex and removing white spaces
-                    ticket[custom_field_regex] = split_key[1]
+    for key in data:  # Adding ticket custom fields to outputs
+        if key.startswith('CF.'):
+            split_key = key.split(':')
+            if split_key[0]:
+                custom_field_regex = re.findall(CURLY_BRACKETS_REGEX, key)[0].replace(' ',
+                                                                                      '')  # Regex and removing white spaces
+                ticket[custom_field_regex] = split_key[1]
 
-        if ticket:
-            ticket_context.append(ticket)
+    ticket_context.append(ticket)
 
     suffix_url = 'ticket/{}/links/show'.format(ticket_id)
     raw_links = http_request('GET', suffix_url)
+    LOG(raw_links.text)
+    LOG.print_log()
     if raw_links:
         links = []
         for raw_link in raw_links:
